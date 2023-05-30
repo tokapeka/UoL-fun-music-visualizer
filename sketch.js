@@ -8,9 +8,16 @@ var sound = null;
 var fourier;
 var isInitialized;
 var amplitude;
+var amplitudes;
+var fft;
+
 
 function preload(){
 	sound = loadSound('assets/stomper_reggae_bit.mp3');
+	amplitudes = [];
+	for(var i = 0; i < 512; i++){
+		amplitudes.push(0);
+	}
 }
 
 function setup(){
@@ -28,6 +35,7 @@ function setup(){
 	 vis.add(new Needles());
 	 isInitialized = false;
 	 amplitude = new p5.Amplitude();
+	 fft = new p5.FFT
 }
 
 function draw(){
@@ -41,9 +49,33 @@ function draw(){
 		text("press any key to begin", width/2, height/2);
 	} else {
 		var a = amplitude.getLevel();
+		amplitudes.push(a);
+		amplitudes.shift();
 		text(a, width/2, 32);
 		var d = map(a, 0, 0.15, 50, 250);
-		ellipse(width/2, height/2, d)
+		ellipse(width/2, height/2, d);
+		var freqs = fft.analyze();
+		stroke(0, 0, 150)
+		for(var i = 0; i < freqs.length; i++){
+			line(i, height, i, height - freqs[i] * 2)
+		}
+		var energy = fft.getEnergy('bass');
+		push();
+		noStroke();
+		fill(255, 0, 0);
+		ellipse(width/4, height/2, 50 + energy);
+		pop();
+
+		push();
+		noFill();
+		stroke(255, 0, 0);
+		beginShape();
+		for(var i = 0; i < amplitudes.length; i++){
+			var h = map(amplitudes[i], 0, 0.15, 0, -150);
+			vertex(i * 2, height/2 + h);
+		}
+		endShape();
+		pop();
 	}
 }
 
